@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: gdalTools
+Version: 0.1
+Summary: some useful tools in gdal
+Home-page: https://github.com/SonwYang/gdaltools.git
+Author: yang peng
+Author-email: 1224425503@qq.com
+License: UNKNOWN
+Description: # gdaltools
+        This project can make gdal easy to use.
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown

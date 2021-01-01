@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="gdalTools",
-    version="0.1",
+    version="0.2",
     author="yang peng",
     author_email="1224425503@qq.com",
     description="some useful tools in gdal",

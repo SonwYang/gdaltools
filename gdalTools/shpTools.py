@@ -91,7 +91,7 @@ def multipoly2singlepoly(inputshp, outputshp):
     if os.path.exists(outputshp):
         driver.DeleteDataSource(outputshp)
     out_ds = driver.CreateDataSource(outputshp)
-    out_lyr = out_ds.CreateLayer('poly', geom_type=ogr.wkbPolygon)
+    out_lyr = out_ds.CreateLayer('poly', in_lyr.GetSpatialRef(), geom_type=ogr.wkbPolygon)
     for in_feat in in_lyr:
         geom = in_feat.GetGeometryRef()
         if geom.GetGeometryName() == 'MULTIPOLYGON':
@@ -245,3 +245,32 @@ def smoothing(inShp, fname, bdistance=0.001):
         out_feature = None
     out_ds.FlushCache()
     del in_ds, out_ds
+
+
+def pol2line(polyfn, linefn):
+    """
+        This function is used to make polygon convert to line
+    :param polyfn: the path of input, the shapefile of polygon
+    :param linefn: the path of output, the shapefile of line
+    :return:
+    """
+    driver = ogr.GetDriverByName('ESRI Shapefile')
+    polyds = ogr.Open(polyfn, 0)
+    polyLayer = polyds.GetLayer()
+    spatialref = polyLayer.GetSpatialRef()
+    #创建输出文件
+    if os.path.exists(linefn):
+        driver.DeleteDataSource(linefn)
+    lineds =driver.CreateDataSource(linefn)
+    linelayer = lineds.CreateLayer(linefn, srs=spatialref, geom_type=ogr.wkbLineString)
+    featuredefn = linelayer.GetLayerDefn()
+    #获取ring到几何体
+    #geomline = ogr.Geometry(ogr.wkbGeometryCollection)
+    for feat in polyLayer:
+        geom = feat.GetGeometryRef()
+        ring = geom.GetGeometryRef(0)
+        #geomcoll.AddGeometry(ring)
+        outfeature = ogr.Feature(featuredefn)
+        outfeature.SetGeometry(ring)
+        linelayer.CreateFeature(outfeature)
+        outfeature = None

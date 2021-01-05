@@ -1,7 +1,9 @@
 README.md
 setup.py
 gdalTools/__init__.py
+gdalTools/rasterConversion.py
 gdalTools/rasterTools.py
+gdalTools/shpConversion.py
 gdalTools/shpTools.py
 gdalTools.egg-info/PKG-INFO
 gdalTools.egg-info/SOURCES.txt

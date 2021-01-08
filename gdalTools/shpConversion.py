@@ -30,9 +30,9 @@ def pol2line(polyfn, linefn):
         outfeature = None
 
 
-def poly2Raster(shp, templatePic, output, field, nodata):
+def shp2Raster(shp, templatePic, output, nodata, field=None):
     """
-        making polygon shapefile convert to raster
+        making shapefile convert to raster
     shp: String，the path of shapefile
     templatePic: String，the template of raster. You can get geo-information from the raster，
                 the output raster should have the same size with this raster.
@@ -63,6 +63,9 @@ def poly2Raster(shp, templatePic, output, field, nodata):
     NoData_value = nodata
     band.SetNoDataValue(NoData_value)
     band.FlushCache()
-    gdal.RasterizeLayer(target_ds, [1], mb_l, options=["ATTRIBUTE=%s"%field,'ALL_TOUCHED=TRUE'])
+    if field is not None:
+        gdal.RasterizeLayer(target_ds, [1], mb_l, options=["ATTRIBUTE=%s"%field,'ALL_TOUCHED=TRUE'])
+    else:
+        gdal.RasterizeLayer(target_ds, [1], mb_l)
 
     target_ds = None

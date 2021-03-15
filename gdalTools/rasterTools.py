@@ -1,7 +1,6 @@
 import os, sys, time
 import numpy as np
-from osgeo import ogr
-from osgeo import gdal
+from osgeo import ogr, gdal
 from osgeo import gdal_array as ga
 
 

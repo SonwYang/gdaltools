@@ -1,7 +1,10 @@
 from pathlib import Path
-import ogr
-import gdal
+from osgeo import ogr, gdal
 import os
+import geopandas as pd
+import rasterio
+from rasterstats import zonal_stats
+import time
 
 
 def intersection(ShpA, ShpB, fname):
@@ -274,3 +277,60 @@ def pol2line(polyfn, linefn):
         outfeature.SetGeometry(ring)
         linelayer.CreateFeature(outfeature)
         outfeature = None
+
+
+def ZonalStatisticsAsTable(ras_path, shp_path, stats_list=['majority']):
+    start = time.time()
+    ras_driver = rasterio.open(ras_path)
+    array = ras_driver.read(1)
+    affine = ras_driver.transform
+    shp_driver = pd.read_file(shp_path)
+    zs = zonal_stats(shp_path, array, affine=affine, stats=stats_list)
+
+    driver = ogr.GetDriverByName('ESRI Shapefile')
+    layer_source = driver.Open(shp_path, 1)
+    lyr = layer_source.GetLayer()
+    defn = lyr.GetLayerDefn()
+
+    featureCount = defn.GetFieldCount()
+    exists_fields = []
+    for i in range(featureCount):
+        field = defn.GetFieldDefn(i)
+        field_name = field.GetNameRef()
+        exists_fields.append(field_name)
+
+    for ele in stats_list:
+        if ele in exists_fields:
+            pass
+        else:
+            # cls_name = ogr.FieldDefn(k, ogr.OFTString)
+            cls_name = ogr.FieldDefn(ele, ogr.OFTReal)
+            # cls_name.SetWidth(64)
+            lyr.CreateField(cls_name)
+
+    driver = None
+
+    driver = ogr.GetDriverByName('ESRI Shapefile')
+    layer_source = driver.Open(shp_path, 1)
+    lyr = layer_source.GetLayer()
+    defn = lyr.GetLayerDefn()
+
+    featureCount = defn.GetFieldCount()
+
+    count = 0
+    feature = lyr.GetNextFeature()
+    while feature is not None:
+        for i in range(featureCount):
+            field = defn.GetFieldDefn(i)
+            field_name = field.GetNameRef()
+            if field_name in stats_list:
+                feature.SetField(field_name, zs[count][field_name])
+                lyr.SetFeature(feature)
+            else:
+                pass
+        count += 1
+        feature = lyr.GetNextFeature()
+
+    end = time.time()
+    print((end - start) / 3600.0)
+

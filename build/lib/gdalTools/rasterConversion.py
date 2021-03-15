@@ -1,4 +1,4 @@
-import gdalconst, gdal, ogr, osr
+from osgeo import gdalconst, gdal, ogr, osr
 import os
 
 

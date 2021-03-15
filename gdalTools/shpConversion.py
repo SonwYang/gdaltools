@@ -1,5 +1,6 @@
 import os
-import gdal, gdalconst, ogr
+from osgeo import gdal, gdalconst, ogr
+
 
 def pol2line(polyfn, linefn):
     """

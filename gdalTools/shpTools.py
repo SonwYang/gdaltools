@@ -5,7 +5,12 @@ import geopandas as pd
 import rasterio
 from rasterstats import zonal_stats
 import time
+import shutil
 
+
+def mkdir(path):
+    if not os.path.exists(path):
+        os.mkdir(path)
 
 def intersection(ShpA, ShpB, fname):
     """
@@ -280,6 +285,9 @@ def pol2line(polyfn, linefn):
 
 
 def ZonalStatisticsAsTable(ras_path, shp_path, stats_list=['majority']):
+    """
+        please refer to https://blog.csdn.net/weixin_42990464/article/details/114652193
+    """
     start = time.time()
     ras_driver = rasterio.open(ras_path)
     array = ras_driver.read(1)
@@ -333,4 +341,57 @@ def ZonalStatisticsAsTable(ras_path, shp_path, stats_list=['majority']):
 
     end = time.time()
     print((end - start) / 3600.0)
+
+
+def compute_max_area(shpPath):
+    '''
+        compute max area among all features
+    :param shpPath: the absolute path of shapefile
+    :return: the max area
+    '''
+    max_area = 0
+    driver = ogr.GetDriverByName("ESRI Shapefile")
+    dataSource = driver.Open(shpPath, 1)
+    layer = dataSource.GetLayer()
+    new_field = ogr.FieldDefn("Area", ogr.OFTReal)
+    new_field.SetWidth(32)
+    new_field.SetPrecision(16)  # 设置面积精度,小数点后16位
+    layer.CreateField(new_field)
+    for feature in layer:
+        geom = feature.GetGeometryRef()
+        area = geom.GetArea()  # 计算面积
+        if area > max_area:
+            max_area = area
+        feature.SetField("Area", area)  # 将面积添加到属性表中
+        layer.SetFeature(feature)
+    dataSource = None
+    return max_area
+
+
+def extract_isolated_features(inShp, outshp, bdistance=0.008, temproot='./temp'):
+    """
+        extract isolated features among all features(point, line, polygon)
+    :param inShp: the path of input shapefile
+    :param outshp: the path of output shapefile
+    :param bdistance: the distance of buffer
+    :param temproot: temporary file directory
+    :return: None
+    """
+    mkdir(temproot)
+    fname = f'{temproot}/buffer.shp'
+    fname2 = f'{temproot}/buffer2.shp'
+    buffer(inShp, fname, bdistance=bdistance)
+    max_area = compute_max_area(fname)
+    MergeOneShp(fname, fname2)
+    multipoly2singlepoly(fname2, fname)
+    remove_big_feature(fname, fname2, max_area)
+    MergeOneShp(fname2, fname)
+    intersection(fname, inShp, outshp)
+
+    # remove temporary directory
+    if os.path.exists(temproot):
+        shutil.rmtree(temproot)
+
+
+
 

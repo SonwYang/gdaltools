@@ -1,5 +1,19 @@
 import os
 from osgeo import gdal, gdalconst, ogr
+import geopandas as gpd
+from shapely.geometry import Polygon, mapping
+
+
+def line2pol(in_shp, out_shp):
+    """
+        convert multiLine to polygon
+    :param in_shp: the path of input shapefile
+    :param out_shp: the path of output shapefile
+    :return:
+    """
+    gdf = gpd.read_file(in_shp) #LINESTRING
+    gdf['geometry'] = [Polygon(mapping(x)['coordinates']) for x in gdf.geometry]
+    gdf.to_file(out_shp, driver="ESRI Shapefile")
 
 
 def pol2line(polyfn, linefn):
@@ -70,3 +84,4 @@ def shp2Raster(shp, templatePic, output, nodata, field=None):
         gdal.RasterizeLayer(target_ds, [1], mb_l)
 
     target_ds = None
+

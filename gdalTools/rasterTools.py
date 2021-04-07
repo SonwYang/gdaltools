@@ -136,10 +136,6 @@ def sample_clip(shp, tif, outputdir, sampletype, size, fieldName='cls', n=None):
     :return:
     """
     time1 = time.clock()
-    if not os.path.exists(outputdir):
-        os.mkdir(outputdir)
-    else:
-        del_file(outputdir)
 
     gdal.AllRegister()
     lc = gdal.Open(tif)

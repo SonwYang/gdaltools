@@ -2,6 +2,7 @@ from pathlib import Path
 from osgeo import ogr, gdal
 import os
 import geopandas as pd
+from geopandas._vectorized import simplify
 import rasterio
 from rasterstats import zonal_stats
 import time
@@ -393,5 +394,13 @@ def extract_isolated_features(inShp, outshp, bdistance=0.008, temproot='./temp')
         shutil.rmtree(temproot)
 
 
-
+def simplify_shp(in_shp, out_shp, tolerance=0.0001):
+    """
+    :param in_shp: the path of input shapefile
+    :param out_shp: the path of output shapefile
+    :return: Returns a simplified shapefile produced by the Douglas-Peucker
+    """
+    gdf = pd.read_file(in_shp) #LINESTRING
+    gdf['geometry'] = simplify( gdf['geometry'], tolerance=tolerance)
+    gdf.to_file(out_shp, driver="ESRI Shapefile")
 
